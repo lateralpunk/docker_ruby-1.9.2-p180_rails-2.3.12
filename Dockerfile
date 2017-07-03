@@ -45,6 +45,7 @@ RUN source /usr/local/rvm/scripts/rvm; gem install pager -v 1.0.1
 RUN source /usr/local/rvm/scripts/rvm; gem install railroad -v 0.5.0 
 RUN source /usr/local/rvm/scripts/rvm; gem install rbtree -v 0.4.1 
 RUN source /usr/local/rvm/scripts/rvm; gem install rqrcode -v 0.10.1
+RUN source /usr/local/rvm/scripts/rvm; gem install sentient_user -v 0.3.2
 
 RUN rm -rf /var/lib/apt/lists
 
