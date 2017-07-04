@@ -5,7 +5,7 @@ FROM ubuntu:16.04
 COPY .emacs .irbrc .tmux.conf /root/
 
 RUN apt-get update
-RUN apt-get install -y curl locales-all git subversion man emacs nano tmux fortune-mod fortunes figlet imagemagick
+RUN apt-get install -y curl locales-all git subversion man emacs nano tmux fortune-mod fortunes figlet imagemagick ntp tzdata
 RUN gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
 # https://github.com/rvm/rvm/issues/4068
 RUN curl -sSL https://get.rvm.io | grep -v __rvm_print_headline | bash -s stable --ruby=1.9.2-p180
@@ -47,10 +47,6 @@ RUN source /usr/local/rvm/scripts/rvm; gem install rbtree -v 0.4.1
 RUN source /usr/local/rvm/scripts/rvm; gem install rqrcode -v 0.10.1
 RUN source /usr/local/rvm/scripts/rvm; gem install sentient_user -v 0.3.2
 
-RUN rm -rf /var/lib/apt/lists
-
-EXPOSE 3000
-
 # some monkey-patching going on here
 COPY timestamp.rb /usr/local/rvm/gems/ruby-1.9.2-p180/gems/activerecord-2.3.12/lib/active_record
 COPY sortable_columns.rb /usr/local/rvm/gems/ruby-1.9.2-p180/gems/handles_sortable_columns-0.1.2/lib/handles
@@ -59,4 +55,7 @@ COPY processor.rb /usr/local/rvm/gems/ruby-1.9.2-p180/gems/paperclip-2.3.1.1/lib
 # for fortune
 ENV PATH "$PATH:/usr/games"
 
-
+ENV CONTAINER_TIMEZONE America/Los_Angeles
+RUN echo 'echo $CONTAINER_TIMEZONE > /etc/timezone' >> /root/.bashrc
+RUN echo 'ln -sf /usr/share/zoneinfo/$CONTAINER_TIMEZONE /etc/localtime' >> /root/.bashrc
+RUN echo "dpkg-reconfigure -f noninteractive tzdata" >> /root/.bashrc
