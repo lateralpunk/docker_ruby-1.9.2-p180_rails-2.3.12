@@ -1,61 +1,98 @@
-FROM ubuntu:16.04
+FROM alpine:3.7
 
-# docker build -t ruby-1.9.2-p180_rails-2.3.12:latest .
+RUN apk update && apk upgrade
+RUN apk add --no-cache bash
+SHELL ["/bin/bash", "-c"]
 
-COPY .emacs .irbrc .tmux.conf /root/
+RUN apk add --no-cache curl
+RUN apk add --no-cache fortune
+RUN apk add --no-cache jpeg
+RUN apk add --no-cache libjpeg
+RUN apk add --no-cache imagemagick
+RUN apk add --no-cache gpgme
+RUN apk add --no-cache procps
+RUN apk add --no-cache tar
+RUN apk add --no-cache gcc 
+RUN apk add --no-cache make
+RUN apk add --no-cache alpine-sdk
+RUN apk add --no-cache shadow
+RUN apk add --no-cache ca-certificates && update-ca-certificates
+RUN apk add --no-cache tzdata
+RUN apk add --no-cache zlib
+RUN apk add --no-cache zlib-dev
+RUN apk add --no-cache openssl
+RUN apk add --no-cache openssl-dev
+RUN apk add --no-cache sqlite
+RUN apk add --no-cache sqlite-dev
+RUN apk add --no-cache gnupg
+RUN apk add --no-cache musl-dev
+RUN apk add --no-cache linux-headers
+RUN apk add --no-cache libxml2-dev
+RUN apk add --no-cache libxslt-dev
+RUN apk add --no-cache bison
+RUN apk add --no-cache autoconf
+RUN apk add --no-cache yaml
+RUN apk add --no-cache yaml-dev
+RUN apk add --no-cache tmux
+RUN apk add --no-cache emacs
+RUN apk add --no-cache readline 
+RUN apk add --no-cache readline-dev
 
-RUN apt-get update
-RUN apt-get install -y curl locales-all git subversion man emacs nano tmux fortune-mod fortunes figlet imagemagick ntp tzdata
-RUN gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
-# https://github.com/rvm/rvm/issues/4068
-RUN curl -sSL https://get.rvm.io | grep -v __rvm_print_headline | bash -s stable --ruby=1.9.2-p180
-
+ENV TZ=America/Toronto
 ENV LANGUAGE en_US.UTF-8
 ENV LANG en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
 
-SHELL ["/bin/bash", "-c"]
-RUN echo "source /usr/local/rvm/scripts/rvm" >> /root/.bashrc
+ENV RUBY_MAJOR 1.9
+ENV RUBY_VERSION 1.9.2-p180
 
-RUN source /usr/local/rvm/scripts/rvm; gem update --system 1.6.2 
-RUN source /usr/local/rvm/scripts/rvm; gem install rails -v 2.3.12 
-RUN source /usr/local/rvm/scripts/rvm; gem install mongrel -v 1.2.0.pre2 
-RUN source /usr/local/rvm/scripts/rvm; gem install nokogiri -v 1.6.0 
-# ERROR:  Error installing authlogic:
-#   i18n requires Ruby version >= 1.9.3.
-RUN source /usr/local/rvm/scripts/rvm; gem install authlogic -v 2.1.6; exit 0
-RUN source /usr/local/rvm/scripts/rvm; gem install calendar_helper -v 0.2.6 
-RUN source /usr/local/rvm/scripts/rvm; gem install cancan -v 1.3.4 
-RUN source /usr/local/rvm/scripts/rvm; gem install exchange -v 1.2.2 
-RUN source /usr/local/rvm/scripts/rvm; gem install fuzzy_match -v 2.1.0 
-RUN source /usr/local/rvm/scripts/rvm; gem install handles_sortable_columns -v 0.1.2 
-RUN source /usr/local/rvm/scripts/rvm; gem install hirb -v 0.7.1 
-RUN source /usr/local/rvm/scripts/rvm; gem install paperclip -v 2.3.1.1 
-RUN source /usr/local/rvm/scripts/rvm; gem install rqrcode -v 0.10.1 
-RUN source /usr/local/rvm/scripts/rvm; gem install sqlite3 -v 1.3.8 
-RUN source /usr/local/rvm/scripts/rvm; gem install sqlite3-ruby -v 1.3.3 
-RUN source /usr/local/rvm/scripts/rvm; gem install will_paginate -v 2.3.15 
-RUN source /usr/local/rvm/scripts/rvm; gem install abstract -v 1.0.0 
-RUN source /usr/local/rvm/scripts/rvm; gem install algorithms -v 0.6.1 
-RUN source /usr/local/rvm/scripts/rvm; gem install atomic -v 1.1.13 
-RUN source /usr/local/rvm/scripts/rvm; gem install cheat -v 1.3.3 
-RUN source /usr/local/rvm/scripts/rvm; gem install chunky_png -v 1.3.8 
-RUN source /usr/local/rvm/scripts/rvm; gem install open4 -v 1.3.4 
-RUN source /usr/local/rvm/scripts/rvm; gem install pager -v 1.0.1 
-RUN source /usr/local/rvm/scripts/rvm; gem install railroad -v 0.5.0 
-RUN source /usr/local/rvm/scripts/rvm; gem install rbtree -v 0.4.1 
-RUN source /usr/local/rvm/scripts/rvm; gem install rqrcode -v 0.10.1
-RUN source /usr/local/rvm/scripts/rvm; gem install sentient_user -v 0.3.2
+RUN mkdir -p /usr/src/ruby
+RUN curl -SL "http://cache.ruby-lang.org/pub/ruby/$RUBY_MAJOR/ruby-$RUBY_VERSION.tar.bz2" | tar -xjC /usr/src/ruby --strip-components=1
+RUN cd /usr/src/ruby && autoconf && ./configure --disable-install-doc && make && make install && cd /root && rm -r /usr/src/ruby
+
+RUN gem install --no-ri --no-rdoc -v 1.6.2 rubygems-update && ruby `gem env gemdir`/gems/rubygems-update-1.6.2/setup.rb
+RUN gem install --no-ri --no-rdoc rails -v 2.3.12 
+RUN gem install --no-ri --no-rdoc mongrel -v 1.2.0.pre2 
+RUN export NOKOGIRI_USE_SYSTEM_LIBRARIES=true && gem install --no-ri --no-rdoc nokogiri -v 1.6.0
+RUN gem install --no-ri --no-rdoc authlogic -v 2.1.6; exit 0
+RUN gem install --no-ri --no-rdoc calendar_helper -v 0.2.6 
+RUN gem install --no-ri --no-rdoc cancan -v 1.3.4 
+RUN gem install --no-ri --no-rdoc exchange -v 1.2.2 
+RUN gem install --no-ri --no-rdoc fuzzy_match -v 2.1.0 
+RUN gem install --no-ri --no-rdoc handles_sortable_columns -v 0.1.2 
+RUN gem install --no-ri --no-rdoc hirb -v 0.7.1 
+RUN gem install --no-ri --no-rdoc paperclip -v 2.3.1.1 
+RUN gem install --no-ri --no-rdoc rqrcode -v 0.10.1 
+RUN gem install --no-ri --no-rdoc sqlite3 -v 1.3.8 
+RUN gem install --no-ri --no-rdoc sqlite3-ruby -v 1.3.3 
+RUN gem install --no-ri --no-rdoc will_paginate -v 2.3.15 
+RUN gem install --no-ri --no-rdoc abstract -v 1.0.0 
+RUN gem install --no-ri --no-rdoc algorithms -v 0.6.1 
+RUN gem install --no-ri --no-rdoc atomic -v 1.1.13 
+RUN gem install --no-ri --no-rdoc cheat -v 1.3.3 
+RUN gem install --no-ri --no-rdoc chunky_png -v 1.3.8 
+RUN gem install --no-ri --no-rdoc open4 -v 1.3.4 
+RUN gem install --no-ri --no-rdoc pager -v 1.0.1 
+RUN gem install --no-ri --no-rdoc railroad -v 0.5.0 
+RUN gem install --no-ri --no-rdoc rbtree -v 0.4.1 
+RUN gem install --no-ri --no-rdoc rqrcode -v 0.10.1
+RUN gem install --no-ri --no-rdoc sentient_user -v 0.3.2
+RUN gem install --no-ri --no-rdoc i18n -v 0.6.5
+RUN gem install --no-ri --no-rdoc tzinfo -v 0.3.37
+
+# https://github.com/ImageMagick/ImageMagick/issues/856#issuecomment-343273474
+RUN apk add --no-cache ghostscript-fonts 
+
+COPY .emacs .irbrc .tmux.conf /root/
 
 # some monkey-patching going on here
-COPY timestamp.rb /usr/local/rvm/gems/ruby-1.9.2-p180/gems/activerecord-2.3.12/lib/active_record
-COPY sortable_columns.rb /usr/local/rvm/gems/ruby-1.9.2-p180/gems/handles_sortable_columns-0.1.2/lib/handles
-COPY processor.rb /usr/local/rvm/gems/ruby-1.9.2-p180/gems/paperclip-2.3.1.1/lib/paperclip
+COPY timestamp.rb /usr/local/lib/ruby/gems/1.9.1/gems/activerecord-2.3.12/lib/active_record
+COPY sortable_columns.rb /usr/local/lib/ruby/gems/1.9.1/gems/handles_sortable_columns-0.1.2/lib/handles
+COPY processor.rb /usr/local/lib/ruby/gems/1.9.1/gems/paperclip-2.3.1.1/lib/paperclip
 
-# for fortune
-ENV PATH "$PATH:/usr/games"
+ENTRYPOINT ["/bin/bash"]
 
-ENV CONTAINER_TIMEZONE America/Los_Angeles
-RUN echo 'echo $CONTAINER_TIMEZONE > /etc/timezone' >> /root/.bashrc
-RUN echo 'ln -sf /usr/share/zoneinfo/$CONTAINER_TIMEZONE /etc/localtime' >> /root/.bashrc
-RUN echo "dpkg-reconfigure -f noninteractive tzdata" >> /root/.bashrc
+#RUN apk del alpine-sdk curl gcc gpgme gcc make alpine-sdk 
+RUN rm -rf /var/cache/apk/* && rm -rf /tmp/*
+
+
