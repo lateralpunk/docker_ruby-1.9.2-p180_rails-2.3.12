@@ -2,53 +2,33 @@ FROM alpine:3.7
 
 RUN apk update && apk upgrade
 RUN apk add --no-cache bash
-SHELL ["/bin/bash", "-c"]
 
-RUN apk add --no-cache curl
+RUN apk add --no-cache --virtual build-dependencies alpine-sdk gmp-dev zlib-dev openssl-dev gdbm-dev db-dev libedit-dev libffi-dev coreutils yaml-dev autoconf readline-dev
+
 RUN apk add --no-cache fortune
-RUN apk add --no-cache jpeg
-RUN apk add --no-cache libjpeg
 RUN apk add --no-cache imagemagick
-RUN apk add --no-cache gpgme
-RUN apk add --no-cache procps
-RUN apk add --no-cache tar
-RUN apk add --no-cache gcc 
-RUN apk add --no-cache make
-RUN apk add --no-cache alpine-sdk
-RUN apk add --no-cache shadow
-RUN apk add --no-cache ca-certificates && update-ca-certificates
-RUN apk add --no-cache tzdata
 RUN apk add --no-cache zlib
-RUN apk add --no-cache zlib-dev
 RUN apk add --no-cache openssl
-RUN apk add --no-cache openssl-dev
 RUN apk add --no-cache sqlite
 RUN apk add --no-cache sqlite-dev
-RUN apk add --no-cache gnupg
-RUN apk add --no-cache musl-dev
-RUN apk add --no-cache linux-headers
 RUN apk add --no-cache libxml2-dev
 RUN apk add --no-cache libxslt-dev
-RUN apk add --no-cache bison
-RUN apk add --no-cache autoconf
 RUN apk add --no-cache yaml
-RUN apk add --no-cache yaml-dev
-RUN apk add --no-cache tmux
-RUN apk add --no-cache emacs
-RUN apk add --no-cache readline 
-RUN apk add --no-cache readline-dev
+RUN apk add --no-cache readline
+# https://github.com/ImageMagick/ImageMagick/issues/856#issuecomment-343273474
+RUN apk add --no-cache ghostscript-fonts 
+RUN apk add --no-cache openssh
+RUN apk add --no-cache rsync
+RUN apk add --no-cache tzdata
 
 ENV TZ=America/Toronto
 ENV LANGUAGE en_US.UTF-8
 ENV LANG en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
 
-ENV RUBY_MAJOR 1.9
-ENV RUBY_VERSION 1.9.2-p180
-
 RUN mkdir -p /usr/src/ruby
-RUN curl -SL "http://cache.ruby-lang.org/pub/ruby/$RUBY_MAJOR/ruby-$RUBY_VERSION.tar.bz2" | tar -xjC /usr/src/ruby --strip-components=1
-RUN cd /usr/src/ruby && autoconf && ./configure --disable-install-doc && make && make install && cd /root && rm -r /usr/src/ruby
+RUN wget http://cache.ruby-lang.org/pub/ruby/1.9/ruby-1.9.2-p180.tar.bz2 -O - | tar -xjC /usr/src/ruby --strip-components=1
+RUN cd /usr/src/ruby && autoconf && ./configure --disable-install-doc && make && make install && rm -r /usr/src/ruby
 
 RUN gem install --no-ri --no-rdoc -v 1.6.2 rubygems-update && ruby `gem env gemdir`/gems/rubygems-update-1.6.2/setup.rb
 RUN gem install --no-ri --no-rdoc rails -v 2.3.12 
@@ -80,10 +60,7 @@ RUN gem install --no-ri --no-rdoc sentient_user -v 0.3.2
 RUN gem install --no-ri --no-rdoc i18n -v 0.6.5
 RUN gem install --no-ri --no-rdoc tzinfo -v 0.3.37
 
-# https://github.com/ImageMagick/ImageMagick/issues/856#issuecomment-343273474
-RUN apk add --no-cache ghostscript-fonts 
-
-COPY .emacs .irbrc .tmux.conf /root/
+COPY .irbrc /root/
 
 # some monkey-patching going on here
 COPY timestamp.rb /usr/local/lib/ruby/gems/1.9.1/gems/activerecord-2.3.12/lib/active_record
@@ -92,7 +69,9 @@ COPY processor.rb /usr/local/lib/ruby/gems/1.9.1/gems/paperclip-2.3.1.1/lib/pape
 
 ENTRYPOINT ["/bin/bash"]
 
-#RUN apk del alpine-sdk curl gcc gpgme gcc make alpine-sdk 
-RUN rm -rf /var/cache/apk/* && rm -rf /tmp/*
+WORKDIR /root/harmoknit
+
+RUN apk del build-dependencies
+
 
 

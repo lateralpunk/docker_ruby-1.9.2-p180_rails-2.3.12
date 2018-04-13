@@ -1,0 +1,21 @@
+version: '3'
+services:
+  shell:
+    build: .
+    image: harmoknit:latest
+    volumes:
+      - ~/workspace/fcf/harmoknit:/root/harmoknit:delegated
+  dev-server:
+    build: .
+    image: harmoknit:latest
+    ports:
+      - "3000:3000"
+    entrypoint: /bin/bash -c "touch log/development.log && script/server"
+    volumes:
+      - ~/workspace/fcf/harmoknit:/root/harmoknit:delegated
+  dev-console:
+    build: .
+    image: harmoknit:latest
+    entrypoint: /bin/bash -c script/console
+    volumes:
+      - ~/workspace/fcf/harmoknit:/root/harmoknit:delegated
